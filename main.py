@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 
@@ -22,17 +22,31 @@ current_id = 1
 async def index():
     return "Hello, this is the Person API."
 
+persons: Dict[int, Person] = {}
+current_id = 1
+
 @app.post("/persons/", response_model=Person)
 async def create_person(person: PersonCreate):
-    return None
+    global current_id
+    new_person = Person(
+        id=current_id,
+        name=person.name,
+        age=person.age,
+        email=person.email
+    )
+    persons[current_id] = new_person
+    current_id += 1
+    return new_person
 
 @app.get("/persons/", response_model=List[Person])
 async def list_persons():
-    return None
+    return list(persons.values())
 
 @app.get("/persons/{person_id}", response_model=Person)
 async def get_person(person_id: int):
-    return None
+    if person_id not in persons:
+        raise HTTPException(status_code=404, detail="Person not found")
+    return persons[person_id]
 
 @app.put("/persons/{person_id}", response_model=Person)
 async def update_person(person_id: int, person: PersonCreate):

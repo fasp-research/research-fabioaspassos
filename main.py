@@ -54,4 +54,7 @@ async def update_person(person_id: int, person: PersonCreate):
 
 @app.delete("/persons/{person_id}")
 async def delete_person(person_id: int):
-    return None
+    if person_id not in persons:
+        raise HTTPException(status_code=404, detail="Person not found")
+    del persons[person_id]
+    return {"message": "Person deleted successfully"}
